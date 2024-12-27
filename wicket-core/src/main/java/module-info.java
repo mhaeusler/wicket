@@ -24,12 +24,11 @@ module org.apache.wicket.core {
     requires org.apache.commons.io;
     requires org.apache.commons.collections4;
     requires org.apache.commons.fileupload2.core;
-    requires org.apache.commons.fileupload2.jakarta;
+    requires org.apache.commons.fileupload2.jakarta.servlet5;
     requires org.slf4j;
     requires static jakarta.servlet;
     requires org.danekja.jdk.serializable.functional;
     requires com.github.openjson;
-    requires org.junit.jupiter.api;
     requires static org.bouncycastle.provider;
 
     provides org.apache.wicket.IInitializer with org.apache.wicket.Initializer;
@@ -139,7 +138,22 @@ module org.apache.wicket.core {
     exports org.apache.wicket.util.image;
     exports org.apache.wicket.util.reference;
     exports org.apache.wicket.util.template;
-    exports org.apache.wicket.util.tester;
     exports org.apache.wicket.validation;
     exports org.apache.wicket.validation.validator;
+
+    //opening packages to allow resources access
+    opens org.apache.wicket;
+    opens org.apache.wicket.mock;
+    opens org.apache.wicket.ajax;
+    opens org.apache.wicket.ajax.res.js;
+    opens org.apache.wicket.resource.jquery;
+    opens org.apache.wicket.markup.html.panel;
+    opens org.apache.wicket.markup.html.link;
+    opens org.apache.wicket.markup.html.pages;
+    opens org.apache.wicket.markup.html.debug;
+    opens org.apache.wicket.markup.html.form;
+    opens org.apache.wicket.markup.html.form.validation;
+    opens org.apache.wicket.markup.html.form.upload;
+    opens org.apache.wicket.markup.html.form.upload.resource;
+    opens org.apache.wicket.markup.html.navigation.paging;
 }

@@ -107,7 +107,7 @@ module.exports = function(grunt) {
 			all: {
 				options: {
 					urls: [
-						'http://localhost:38887/test/js/all.html?3.6.4'
+						'http://localhost:38887/test/js/all.html?3.7.1'
 					]
 				}
 			},
@@ -118,7 +118,7 @@ module.exports = function(grunt) {
 			amd: {
 				options: {
 					urls: [
-						'http://localhost:38887/test/js/amd.html?3.6.4'
+						'http://localhost:38887/test/js/amd.html?3.7.1'
 					]
 				}
 			}
@@ -128,7 +128,7 @@ module.exports = function(grunt) {
 			server: {
 				options: {
 					port: 38887,
-//					debug: true,
+					debug: true,
 					middleware: function(connect, options, middlewares) {
 						middlewares.unshift(function(req, res, next) {
 							if (req.url.indexOf('submitNestedForm') > 0) {

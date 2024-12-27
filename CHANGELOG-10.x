@@ -2,6 +2,131 @@ This file contains all changes done in releases for Apache Wicket 10.x.
 
 =======================================================================
 
+Release Notes - Wicket - Version 10.3.0
+
+** Bug
+
+    * [WICKET-3899] - IFormVisitorParticipant don't get tested when validating form validators dependent components
+    * [WICKET-7024] - Wrong static resource urls when their generation is triggered by <wicket:link>
+    * [WICKET-7124] - The quickstart archetype fails to build 
+    * [WICKET-7125] - To use cdi-unit CreationalContext to inject beans in Wicket components during tests
+
+** Improvement
+
+    * [WICKET-7123] - Form.setDefaultButton() supports only one button per form hierarchy
+    * [WICKET-7131] - Improve accessibility and screen reader support for auto-complete component
+    * [WICKET-7133] - Ability move focus back to the autocomplete field when selecting an item using the Tab key
+
+=======================================================================
+
+Release Notes - Wicket - Version 10.2.0
+
+** Bug
+
+    * [WICKET-7117] - 2 tests that fail under some circumstances
+    * [WICKET-7118] - Quickstart for 10.x doesn't start HTTPS
+    * [WICKET-7119] - 5 unit tests are non-idempotent (passes in the first run but fails in subsequent runs in the same environment)
+
+** Improvement
+
+    * [WICKET-7112] - Expand error messages in Component class
+    * [WICKET-7115] - Spelling corrections, and removal of non-breaking spaces. Some doc improvements
+    * [WICKET-7116] - Spelling corrections, and consistent heading case
+    * [WICKET-7120] - Improve Accessibility of AutoCompleteBehavior
+    * [WICKET-7121] - Make it possible to disable the noisy logs by RequestCycle
+    * [WICKET-7122] - Update Wicket-CDI bean archive descriptor to use Jakarta XML namespace
+
+=======================================================================
+
+Release Notes - Wicket - Version 10.1.0
+
+** Bug
+
+    * [WICKET-7102] - Error in LiveSessionsPage
+    * [WICKET-7104] - wicket-autocomplete.min.js minified too aggressively
+    * [WICKET-7111] - Greek Application i18n is broken due to wrong file name
+
+** New Feature
+
+    * [WICKET-7109] - Create a ready to use dropdown supporting grouping
+
+** Improvement
+
+    * [WICKET-7098] - [Websockets] malformed XML is generated if runtime exceptions happen during rendering phase of a web socket push request
+    * [WICKET-7101] - auto-label is not automatically updated when related form component is updated.
+    * [WICKET-7103] - Enhance ModalDialog API
+    * [WICKET-7110] - Add stack trace of lock holding thread in CouldNotLockPageException
+
+** Wish
+
+    * [WICKET-7105] - Remove 'final' from AbstractPartialPageRequestHandler#add(Component...)
+
+=======================================================================
+
+Release Notes - Wicket - Version 10.0.0
+
+** Sub-task
+
+    * [WICKET-7089] - Set cookie SameSite only if the container supports it
+
+** Bug
+
+    * [WICKET-7081] - Open packages to expose resources to other modules 
+    * [WICKET-7086] - Injecting Spring bean may cause ClassCastException
+    * [WICKET-7087] - AjaxLazyLoadPanelTester not available in 10.0.0-M2
+    * [WICKET-7090] - Files in release jars do not have a modification timestamp set
+    * [WICKET-7091] - FilePageStore throws NPE
+    * [WICKET-7096] - stylesheets referenced via automatic linking miss nonce attribute
+
+** Improvement
+
+    * [WICKET-7080] - [Events] make default events delivery machinery pluggable and roll usable annotation based one
+    * [WICKET-7082] - Easier to work with polymorphic values inside IModel
+    * [WICKET-7083] - Trigger client side validation when using SubmitLinks
+    * [WICKET-7088] - Improve test reliability by resolving nondeterministic order of Set and Map
+    * [WICKET-7093] - Add support for missing CSP directives
+    * [WICKET-7094] - Make all CSP schemes configurable
+    * [WICKET-7099] - Validate FormTester constructor parameter workingForm
+
+** Task
+
+    * [WICKET-7079] - Update the user guide with the new wicket-tester module
+    * [WICKET-7100] - Update commons-fileupload2 to 2.0.0-M2
+
+=======================================================================
+
+Release Notes - Wicket - Version 10.0.0-M2
+
+** Bug
+
+    * [WICKET-7056] - HttpSessionStore#getAttribute called on invalidated session
+    * [WICKET-7061] - When I move from 9.13.0->9.14.0, my importmaps fail to parse correctly due to presence of the CDATA wrapping.
+    * [WICKET-7065] - TextFilteredPropertyColumn violates CSP
+    * [WICKET-7067] - DefaultExceptionMapper should not set disableCaching for  WebSocketResponse
+    * [WICKET-7070] - Quick start generated app has multiple errors
+    * [WICKET-7071] - Problems when calling request.getInputStream() before executing WicketFilter
+    * [WICKET-7072] - JUnit code in /src/main/java breaks JPMS support in Eclipse IDE
+    * [WICKET-7074] - [AJAX] malformed XML is produced if an error is produced during AJAX rendering and a redirect is issued 
+    * [WICKET-7076] - JavaScriptReferenceType newly created is not serializable
+    * [WICKET-7077] - 2 spring web application contexts are created
+
+** Improvement
+
+    * [WICKET-7039] - Improve Accessibility of wicket-autocomplete.js
+    * [WICKET-7060] - Minor improvements to wicket-examples
+    * [WICKET-7063] - Convert all Application_*.properties to Application_*.utf8.properties
+    * [WICKET-7066] - Add possibility to define type-Attribute of JavascriptHeaderItem as "module"
+    * [WICKET-7068] - Current tree themes are not RTL friendly
+    * [WICKET-7078] - CSP: inline JS in Choices and Selection of Palette
+
+** Task
+
+    * [WICKET-7064] - commons-fileupload2 dependency should be added back
+    * [WICKET-7069] - assertTrue(equals()) in tests should be replaced with assertEquals
+    * [WICKET-7073] - Update JQuery to 3.7.1
+
+=======================================================================
+
 Release Notes - Wicket - Version 10.0.0-M1
 
 ** Bug
@@ -126,5 +251,4 @@ Release Notes - Wicket - Version 10.0.0-M1
     * [WICKET-7053] - Update Guice to 7.x (javax -> jakarta)
 
 =======================================================================
-
 

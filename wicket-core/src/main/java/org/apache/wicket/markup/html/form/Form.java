@@ -36,6 +36,7 @@ import org.apache.wicket.Page;
 import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
 import org.apache.wicket.core.util.string.CssUtils;
 import org.apache.wicket.event.IEvent;
 import org.apache.wicket.markup.ComponentTag;
@@ -64,10 +65,7 @@ import org.apache.wicket.util.string.PrependingStringBuffer;
 import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.string.interpolator.MapVariableInterpolator;
 import org.apache.wicket.util.value.LongValue;
-import org.apache.wicket.util.visit.ClassVisitFilter;
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
-import org.apache.wicket.util.visit.Visits;
+import org.apache.wicket.util.visit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,22 +163,9 @@ public class Form<T> extends WebMarkupContainer
 		@Override
 		public void component(final FormComponent<?> formComponent, final IVisit<Void> visit)
 		{
-
-			Form<?> form = formComponent.getForm();
-			if (!form.isVisibleInHierarchy() || !form.isEnabledInHierarchy())
-			{
-				// do not validate formComponent or any of formComponent's children
-				visit.dontGoDeeper();
-				return;
-			}
-
 			if (formComponent.isVisibleInHierarchy() && formComponent.isEnabledInHierarchy())
 			{
 				validate(formComponent);
-			}
-			if (formComponent.processChildren() == false)
-			{
-				visit.dontGoDeeper();
 			}
 		}
 
@@ -578,7 +563,8 @@ public class Form<T> extends WebMarkupContainer
 	 * @param submitter
 	 *            the submitter
 	 * @param triggerEvent
-	 *            When true, the form will be submited via a javascript submit event, when false via
+	 *            When true, the form will be submitted via standard form submission ({@code requestSubmit()})
+	 *            including client side validation and firing a javascript submit event, when false via
 	 *            the {@code submit()} method.
 	 * @return the javascript code that submits the form.
 	 *
@@ -599,7 +585,7 @@ public class Form<T> extends WebMarkupContainer
 
 		if (triggerEvent)
 		{
-			buffer.append("Wicket.Event.fire(f, 'submit');");
+			buffer.append("Wicket.Event.requestSubmit(f);");
 		}
 		else
 		{
@@ -755,7 +741,7 @@ public class Form<T> extends WebMarkupContainer
 	@Override
 	public final void onRequest()
 	{
-		onFormSubmitted(null);
+		onFormSubmitted(findSubmitter());
 	}
 
 	/**
@@ -871,7 +857,7 @@ public class Form<T> extends WebMarkupContainer
 				@Override
 				public void component(FormComponent<?> component, IVisit<Void> visit)
 				{
-					component.updateAutoLabels(target);
+					component.updateAutoLabels(target, false);
 				}
 			});
 		});
@@ -1050,22 +1036,16 @@ public class Form<T> extends WebMarkupContainer
 		}
 
 		// invoke Form#onSubmit(..) going from innermost to outermost
-		Visits.visitPostOrder(processingForm, new IVisitor<Form<?>, Void>()
-		{
-			@Override
-			public void component(Form<?> form, IVisit<Void> visit)
+		visitFormsPostOrder(processingForm, (form, visit) -> {
+			if (!form.isEnabledInHierarchy() || !form.isVisibleInHierarchy())
 			{
-				if (!form.isEnabledInHierarchy() || !form.isVisibleInHierarchy())
-				{
-					visit.dontGoDeeper();
-					return;
-				}
-				if (form.hasError())
-				{
-					form.onError();
-				}
+				return;
 			}
-		}, new ClassVisitFilter(Form.class));
+			if (form.hasError())
+			{
+				form.onError();
+			}
+		});
 	}
 
 
@@ -1075,37 +1055,18 @@ public class Form<T> extends WebMarkupContainer
 	 */
 	private void markFormsSubmitted(IFormSubmitter submitter)
 	{
-		setFlag(FLAG_SUBMITTED, true);
 		Form<?> formToProcess = findFormToProcess(submitter);
 
-		visitChildren(Form.class, new IVisitor<Component, Void>()
-		{
-			@Override
-			public void component(final Component component, final IVisit<Void> visit)
+		visitFormsPostOrder(formToProcess, (form, visit) -> {
+			if (form.isEnabledInHierarchy() && form.isVisibleInHierarchy())
 			{
-				Form<?> form = (Form<?>)component;
-				if ((form.wantSubmitOnParentFormSubmit() || form == formToProcess)
-					&& form.isEnabledInHierarchy() && form.isVisibleInHierarchy())
-				{
-					form.setFlag(FLAG_SUBMITTED, true);
-					return;
-				}
-				visit.dontGoDeeper();
+				form.setFlag(FLAG_SUBMITTED, true);
 			}
 		});
 	}
 
 	/**
-	 * Sets the default IFormSubmittingComponent. If set (not null), a hidden submit component will
-	 * be rendered right after the form tag, so that when users press enter in a textfield, this
-	 * submit component's action will be selected. If no default component is set (so unset by
-	 * calling this method with null), nothing additional is rendered.
-	 * <p>
-	 * WARNING: note that this is a best effort only. Unfortunately having a 'default' button in a
-	 * form is ill defined in the standards, and of course IE has it's own way of doing things.
-	 * </p>
-	 * There can be only one default button per form hierarchy. So if you set default button on a
-	 * nested form, it will actually delegate the call to root form. </b>
+	 * Sets the default IFormSubmittingComponent.
 	 *
 	 * @param submittingComponent
 	 *            The component to set as the default submitting component, or null when you want to
@@ -1113,14 +1074,7 @@ public class Form<T> extends WebMarkupContainer
 	 */
 	public final void setDefaultButton(IFormSubmittingComponent submittingComponent)
 	{
-		if (isRootForm())
-		{
-			defaultSubmittingComponent = submittingComponent;
-		}
-		else
-		{
-			getRootForm().setDefaultButton(submittingComponent);
-		}
+		defaultSubmittingComponent = submittingComponent;
 	}
 
 	/**
@@ -1225,6 +1179,38 @@ public class Form<T> extends WebMarkupContainer
 	}
 
 	/**
+	 * Visits forms from the @parameter form down in postorder, skipping any branch not flagged as
+	 * form visitor participant
+	 *
+	 * @param formToProcess
+	 * @param visitor
+	 */
+	private static void visitFormsPostOrder(Form<?> formToProcess, IVisitor<Form<?>, Void> visitor)
+	{
+		Visits.visitPostOrder(formToProcess, visitor, new IVisitFilter()
+		{
+			@Override
+			public boolean visitObject(Object object)
+			{
+				if (object instanceof Form form)
+				{
+					return form == formToProcess || form.wantSubmitOnParentFormSubmit();
+				}
+				return false;
+			}
+			@Override
+			public boolean visitChildren(Object object)
+			{
+				if (object instanceof Form form)
+				{
+					return form.wantSubmitOnParentFormSubmit();
+				}
+				return true;
+			}
+		});
+	}
+
+	/**
 	 * Find out whether there is any registered error for a form component.
 	 *
 	 * @return whether there is any registered error for a form component
@@ -1264,58 +1250,44 @@ public class Form<T> extends WebMarkupContainer
 	}
 
 	/**
-	 * If a default IFormSubmittingComponent was set on this form, this method will be called to
-	 * render an extra field with an invisible style so that pressing enter in one of the textfields
-	 * will do a form submit using this component. This method is overridable as what we do is best
-	 * effort only, and may not what you want in specific situations. So if you have specific
-	 * usability concerns, or want to follow another strategy, you may override this method.
+	 * If a default IFormSubmittingComponent was set on this form, this method will be called and
+	 * can be used to render extra items to HTML.
 	 *
 	 * @see #addDefaultSubmitButtonHandler(IHeaderResponse)
 	 */
+	@Deprecated
 	protected void appendDefaultButtonField()
 	{
-		AppendingStringBuffer buffer = new AppendingStringBuffer();
-
-		// hidden div
-		buffer.append(String.format("<div hidden=\"\" class=\"%s\">",
-			getString(HIDDEN_FIELDS_CSS_CLASS_KEY)));
-
-		// add an empty textfield (otherwise IE doesn't work)
-		buffer.append("<input type=\"text\" tabindex=\"-1\" autocomplete=\"off\"/>");
-
-		// add the submitting component
-		buffer
-			.append(String.format("<input id=\"%s\" type=\"submit\" tabindex=\"-1\" name=\"%s\" />",
-				getHiddenFieldsId(HIDDEN_FIELDS_SUBMIT_IDX),
-				defaultSubmittingComponent.getInputName()));
-
-		// close div
-		buffer.append("</div>");
-
-		getResponse().write(buffer);
+		// intentionally left empty for backward compatibility
 	}
 
 	/**
-	 * Where {@link #appendDefaultButtonField()} renders the markup for default submit button
-	 * handling, this method attaches the event handler to its 'click' event. The 'click' event on
-	 * the hidden submit button will be dispatched to the selected default submit button. As with
-	 * {@link #appendDefaultButtonField()} this method can be overridden when the generated code
-	 * needs to be adjusted for a specific usecase.
+	 * This method attaches the event handler to its 'enter' event.
 	 *
 	 * @param headerResponse
 	 *            The header response.
 	 */
 	protected void addDefaultSubmitButtonHandler(IHeaderResponse headerResponse)
 	{
-		final Component submittingComponent = (Component) defaultSubmittingComponent;
-		AppendingStringBuffer buffer = new AppendingStringBuffer();
-		buffer.append("var b=document.getElementById('");
-		buffer.append(submittingComponent.getMarkupId());
-		buffer.append("'); if (b!=null && b.onclick!=null && typeof(b.onclick) != 'undefined') ");
-		buffer.append(
-			"{  var r = Wicket.bind(b.onclick, b)(); if (r != false) b.click(); } else { b.click(); };  return false;");
-		headerResponse.render(OnEventHeaderItem
-			.forMarkupId(getHiddenFieldsId(HIDDEN_FIELDS_SUBMIT_IDX), "click", buffer.toString()));
+		final Component component = (Component) defaultSubmittingComponent;
+		String submitId = component.getMarkupId();
+
+		AppendingStringBuffer script = new AppendingStringBuffer();
+		script.append("var b = document.getElementById('").append(submitId).append("');");
+		script.append("if (window.getComputedStyle(b).visibility === 'hidden') return;");
+		script.append("if (event.which == 13) {");
+		script.append("event.stopPropagation();");
+		script.append("event.preventDefault();");
+		script.append("if (b != null && b.onclick != null && typeof (b.onclick) != 'undefined') {");
+		script.append("var r = Wicket.bind(b.onclick, b)();");
+		script.append("if (r != false) b.click();");
+		script.append("} else {");
+		script.append("b.click();");
+		script.append("}");
+		script.append("return false;");
+		script.append("}");
+
+		headerResponse.render(OnEventHeaderItem.forMarkupId(getMarkupId(), "keypress", script.toString()));
 	}
 
 	/**
@@ -1352,17 +1324,12 @@ public class Form<T> extends WebMarkupContainer
 
 		// collect all forms innermost to outermost before any hierarchy is changed
 		final List<Form<?>> forms = Generics.newArrayList(3);
-		Visits.visitPostOrder(processingForm, new IVisitor<Form<?>, Void>()
-		{
-			@Override
-			public void component(Form<?> form, IVisit<Void> visit)
+		visitFormsPostOrder(processingForm, (form, visit) -> {
+			if (form.isSubmitted())
 			{
-				if (form.isSubmitted())
-				{
-					forms.add(form);
-				}
+				forms.add(form);
 			}
-		}, new ClassVisitFilter(Form.class));
+		});
 
 		// process submitting component (if specified)
 		if (submittingComponent != null)
@@ -1591,8 +1558,8 @@ public class Form<T> extends WebMarkupContainer
 	 */
 	protected final void markFormComponentsValid()
 	{
-		internalMarkFormComponentsValid();
 		markNestedFormComponentsValid();
+		internalMarkFormComponentsValid();
 	}
 
 	/**
@@ -1600,19 +1567,14 @@ public class Form<T> extends WebMarkupContainer
 	 */
 	private void markNestedFormComponentsValid()
 	{
-		visitChildren(Form.class, new IVisitor<Form<?>, Void>()
-		{
-			@Override
-			public void component(final Form<?> form, final IVisit<Void> visit)
+		visitFormsPostOrder(this, (form, visit) -> {
+			if (form == Form.this)
 			{
-				if (form.isSubmitted())
-				{
-					form.internalMarkFormComponentsValid();
-				}
-				else
-				{
-					visit.dontGoDeeper();
-				}
+				return;
+			}
+			if (form.isSubmitted())
+			{
+				form.internalMarkFormComponentsValid();
 			}
 		});
 	}
@@ -1790,8 +1752,7 @@ public class Form<T> extends WebMarkupContainer
 	}
 
 	/**
-	 * Writes the markup for the hidden input fields and default button field if applicable to the
-	 * current response.
+	 * Writes the markup for the hidden input fields if applicable to the current response.
 	 */
 	public final void writeHiddenFields()
 	{
@@ -1919,8 +1880,8 @@ public class Form<T> extends WebMarkupContainer
 	 */
 	protected final void updateFormComponentModels()
 	{
-		internalUpdateFormComponentModels();
 		updateNestedFormComponentModels();
+		internalUpdateFormComponentModels();
 	}
 
 	/**
@@ -1930,19 +1891,14 @@ public class Form<T> extends WebMarkupContainer
 	 */
 	private void updateNestedFormComponentModels()
 	{
-		visitChildren(Form.class, new IVisitor<Form<?>, Void>()
-		{
-			@Override
-			public void component(final Form<?> form, final IVisit<Void> visit)
+		visitFormsPostOrder(this, (form, visit) -> {
+			if (form == Form.this)
 			{
-				if (form.isSubmitted())
-				{
-					form.internalUpdateFormComponentModels();
-				}
-				else
-				{
-					visit.dontGoDeeper();
-				}
+				return;
+			}
+			if (form.isSubmitted())
+			{
+				form.internalUpdateFormComponentModels();
 			}
 		});
 	}
@@ -1992,22 +1948,17 @@ public class Form<T> extends WebMarkupContainer
 	 */
 	private void internalOnValidateModelObjects()
 	{
-		onValidateModelObjects();
-		visitChildren(Form.class, new IVisitor<Form<?>, Void>()
-		{
-			@Override
-			public void component(Form<?> form, IVisit<Void> visit)
+		visitFormsPostOrder(this, (form, visit) -> {
+			if (form == Form.this)
 			{
-				if (form.isSubmitted())
-				{
-					form.onValidateModelObjects();
-				}
-				else
-				{
-					visit.dontGoDeeper();
-				}
+				return;
+			}
+			if (form.isSubmitted())
+			{
+				form.onValidateModelObjects();
 			}
 		});
+		onValidateModelObjects();
 	}
 
 	/**
@@ -2045,25 +1996,6 @@ public class Form<T> extends WebMarkupContainer
 	}
 
 	/**
-	 * Checks if the specified form component visible and is attached to a page
-	 *
-	 * @param fc
-	 *            form component
-	 *
-	 * @return true if the form component and all its parents are visible and there component is in
-	 *         page's hierarchy
-	 */
-	private boolean isFormComponentVisibleInPage(FormComponent<?> fc)
-	{
-		if (fc == null)
-		{
-			throw new IllegalArgumentException("Argument `fc` cannot be null");
-		}
-		return fc.isVisibleInHierarchy();
-	}
-
-
-	/**
 	 * Validates form with the given form validator
 	 *
 	 * @param validator
@@ -2088,13 +2020,13 @@ public class Form<T> extends WebMarkupContainer
 				}
 				// check if the dependent component is visible and is attached to
 				// the page
-				else if (!isFormComponentVisibleInPage(dependent))
+				else if (!dependent.isVisibleInHierarchy() || !dependent.isEnabledInHierarchy() || !dependent.isFormParticipant())
 				{
 					if (log.isWarnEnabled())
 					{
 						log.warn("IFormValidator in form `" +
 							getPageRelativePath() +
-							"` depends on a component that has been removed from the page or is no longer visible. " +
+							"` depends on a component that has been removed from the page or is no longer visible/enabled. " +
 							"Offending component id `" + dependent.getId() + "`.");
 					}
 					validate = false;
@@ -2130,26 +2062,19 @@ public class Form<T> extends WebMarkupContainer
 	 */
 	private void validateNestedForms()
 	{
-		Visits.visitPostOrder(this, new IVisitor<Form<?>, Void>()
-		{
-			@Override
-			public void component(final Form<?> form, final IVisit<Void> visit)
+		visitFormsPostOrder(this, (form, visit) -> {
+			if (form == Form.this)
 			{
-				if (form == Form.this)
-				{
-					// skip self, only process children
-					visit.stop();
-					return;
-				}
-
-				if (form.isSubmitted())
-				{
-					form.validateComponents();
-					form.validateFormValidators();
-					form.onValidate();
-				}
+				return;
 			}
-		}, new ClassVisitFilter(Form.class));
+
+			if (form.isSubmitted())
+			{
+				form.validateComponents();
+				form.validateFormValidators();
+				form.onValidate();
+			}
+		});
 	}
 
 	/**

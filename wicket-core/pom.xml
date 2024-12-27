@@ -20,11 +20,11 @@
 	<parent>
 		<groupId>org.apache.wicket</groupId>
 		<artifactId>wicket-parent</artifactId>
-		<version>10.0.0-M2-SNAPSHOT</version>
+		<version>10.4.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>wicket-core</artifactId>
-	<packaging>bundle</packaging>
+	<packaging>jar</packaging>
 	<name>Wicket Core</name>
 	<description>
 		Wicket is a Java web application framework that takes simplicity,
@@ -148,16 +148,6 @@ org.apache.wicket.validation.validator;-noimport:=true
 	</properties>
 	<dependencies>
 		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<scope>provided</scope>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>com.github.openjson</groupId>
 			<artifactId>openjson</artifactId>
 		</dependency>
@@ -177,19 +167,6 @@ org.apache.wicket.validation.validator;-noimport:=true
 		<dependency>
 			<groupId>org.danekja</groupId>
 			<artifactId>jdk-serializable-functional</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-params</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>

@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://wicket.apache.org">
-    <img height="300" src="https://wicket.apache.org/img/wicket-9-sun.png" alt="Wicket version header image">
+    <img height="100%" src="https://wicket.apache.org/img/wicket10-title.png" alt="Wicket version header image">
   </a>
 </p>
 
@@ -48,7 +48,7 @@ from, and get started quickly:
 What does Wicket's download package contain?
 -----------------------
 
-You can download Wicket's source package here: https://wicket.apache.org/start/wicket-9.x.html . 
+You can download Wicket's source package here: https://wicket.apache.org/start/wicket-10.x.html . 
 It contains the source code and the jars of the core projects of Wicket. 
 If you are just starting out, you probably only need to include wicket-util-x.jar, wicket-request-x.jar and
 wicket-core-x.jar, where x stands for the version. As a rule, use just the jars
@@ -68,7 +68,10 @@ You will find the source code here:
 	    |-- wicket-auth-roles
 	    |-- wicket-bean-validation
 	    |-- wicket-cdi
+	    |-- wicket-cdi-tests
 	    |-- wicket-core
+	    |-- wicket-tester
+	    |-- wicket-core-tests
 	    |-- wicket-devutils
 	    |-- wicket-eclipse-settings
 	    |-- wicket-examples
@@ -91,6 +94,8 @@ You will find the source code here:
 Here is a list of projects in the distribution and what they do.
 
  - wicket-core: the core project, includes the framework and basic components;
+ - wicket-tester: contains common classes for unit testing
+ - wicket-core-tests: contains test cases for wicket-core module
  - wicket-extensions: contains utilities and more specialized components;
  - wicket-auth-roles: a basic authorization package based on roles;
  - wicket-jmx: registers JMX beans for managing things like your Wicket 
@@ -139,7 +144,7 @@ the root folder.
 
  - wicket and wicket-extensions:
 
-    You only need to include the Servlet API (3.1, just for compiling), SLF4J
+    You only need to include the Jakarta Servlet API (5, just for compiling), SLF4J
     API and the SLF4J logging implementation you want. You cannot use Wicket
     without adding a SLF4J logging implementation to your classpath. 
     Please see the SLF4J site (https://www.slf4j.org/) for more information.
@@ -184,7 +189,7 @@ the source and JavaDoc jars to the Maven repository used by the Maven build
 tool as well. So there is actually no specific need to build Wicket yourself 
 from the distribution.
 
-When building using Maven 2 or 3, execute one of the following in the root folder:
+When building using Maven 3, execute one of the following in the root folder:
 
  - mvn package
 
@@ -195,12 +200,12 @@ When building using Maven 2 or 3, execute one of the following in the root folde
     creates wicket-(subproject)-x.y.z.jar(s) in according target subdirectories and 
     installs the jar files into your local Maven repository for use in other projects.
 
-Migrating from 8.x
+Migrating from 9.x
 ------------------
 
 This file is a copy of the migration guide available on our Wiki:
 
-    https://cwiki.apache.org/confluence/display/WICKET/Migration+to+Wicket+9.0
+    https://cwiki.apache.org/confluence/display/WICKET/Migration+to+Wicket+10.0
     
 Getting help
 ------------
@@ -227,8 +232,8 @@ of the project.
 Java/Application server requirements
 ------------------------------------
 
-Wicket 9 requires at least Java 11. The application server for running your web
-application should adhere to the servlet specification version 3.1 or newer.
+Wicket 10 requires at least Java 17. The application server for running your web
+application should adhere to the Jakarta Servlet 5 specification or newer.
 
 Cryptographic Software Notice
 -----------------------------

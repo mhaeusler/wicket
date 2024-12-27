@@ -25,7 +25,6 @@ module org.apache.wicket.util {
     requires org.apache.commons.collections4;
     requires org.slf4j;
     requires static jakarta.servlet;
-    requires org.junit.jupiter.api;
 
     exports org.apache.wicket.util;
     exports org.apache.wicket.util.collections;
@@ -53,7 +52,7 @@ module org.apache.wicket.util {
     exports org.apache.wicket.util.watch;
     exports org.apache.wicket.util.xml;
 
-    // temporary hack until Weld and CDI-Unit provide Jakarta EE based releases
-    exports javax.servlet;
-    exports javax.servlet.http;
+    //opening packages to allow resources access
+    opens org.apache.wicket.util.markup.xhtml;
+    opens org.apache.wicket.util.license;
 }

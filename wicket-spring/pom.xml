@@ -20,11 +20,11 @@
 	<parent>
 		<groupId>org.apache.wicket</groupId>
 		<artifactId>wicket-parent</artifactId>
-		<version>10.0.0-M2-SNAPSHOT</version>
+		<version>10.4.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>wicket-spring</artifactId>
-	<packaging>bundle</packaging>
+	<packaging>jar</packaging>
 	<name>Wicket Spring Integration</name>
 	<description>Integration project to use Spring injection in your Wicket applications. See the wicket-spring-examples for integration patterns.</description>
 	<properties>
@@ -40,7 +40,6 @@
 		<dependency>
 			<groupId>org.apache.wicket</groupId>
 			<artifactId>wicket-core</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.wicket</groupId>
@@ -49,6 +48,10 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.wicket</groupId>
+			<artifactId>wicket-tester</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
